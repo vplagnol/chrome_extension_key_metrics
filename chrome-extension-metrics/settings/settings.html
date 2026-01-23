@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market Metrics Tracker - Settings</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Market Metrics Tracker Settings</h1>
+    </header>
+
+    <main class="content">
+      <!-- API Keys Section -->
+      <section class="settings-section">
+        <h2 class="section-title">API Keys</h2>
+        <p class="section-description">
+          Configure your API keys to fetch data from Finnhub and FRED.
+        </p>
+
+        <div class="form-group">
+          <label for="finnhubKey">Finnhub API Key</label>
+          <div class="input-with-button">
+            <input
+              type="password"
+              id="finnhubKey"
+              placeholder="Enter your Finnhub API key"
+              autocomplete="off"
+            />
+            <button id="toggleFinnhubKey" class="btn-toggle" type="button">Show</button>
+          </div>
+          <p class="help-text">
+            Get your free API key at <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a>
+          </p>
+          <div id="finnhubKeyStatus" class="status-message"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="fredKey">FRED API Key</label>
+          <div class="input-with-button">
+            <input
+              type="password"
+              id="fredKey"
+              placeholder="Enter your FRED API key"
+              autocomplete="off"
+            />
+            <button id="toggleFredKey" class="btn-toggle" type="button">Show</button>
+          </div>
+          <p class="help-text">
+            Get your free API key at <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank">fred.stlouisfed.org</a>
+          </p>
+          <div id="fredKeyStatus" class="status-message"></div>
+        </div>
+
+        <button id="validateKeysBtn" class="btn-secondary">Validate API Keys</button>
+      </section>
+
+      <!-- Polymarket Section -->
+      <section class="settings-section">
+        <h2 class="section-title">Polymarket Markets</h2>
+        <p class="section-description">
+          Enter Polymarket market slugs or URLs you want to track. Leave empty to show top 5 active markets.
+        </p>
+
+        <div class="form-group">
+          <label for="polymarketIds">Polymarket Markets</label>
+          <textarea
+            id="polymarketIds"
+            rows="4"
+            placeholder="e.g., will-donald-trump-win-the-2024-us-presidential-election&#10;will-biden-drop-out-of-the-2024-presidential-race&#10;Or paste full URLs from polymarket.com"
+          ></textarea>
+          <p class="help-text">
+            Enter market slugs (one per line) or paste full Polymarket URLs. Find markets at <a href="https://polymarket.com" target="_blank">polymarket.com</a>. Leave empty to automatically show the top 5 active markets.
+          </p>
+        </div>
+      </section>
+
+      <!-- Stock Symbols Section -->
+      <section class="settings-section">
+        <h2 class="section-title">Stock Symbols</h2>
+        <p class="section-description">
+          Enter stock symbols you want to track (separated by commas).
+        </p>
+
+        <div class="form-group">
+          <label for="stockSymbols">Stock Symbols</label>
+          <input
+            type="text"
+            id="stockSymbols"
+            placeholder="e.g., AAPL, GOOGL, MSFT, TSLA"
+          />
+          <p class="help-text">
+            Use comma-separated ticker symbols. Example: AAPL, GOOGL, MSFT
+          </p>
+        </div>
+      </section>
+
+      <!-- Economic Indicators Section -->
+      <section class="settings-section">
+        <h2 class="section-title">Economic Indicators</h2>
+        <p class="section-description">
+          Enter FRED series IDs you want to track (one per line).
+        </p>
+
+        <div class="form-group">
+          <label for="economicSeries">FRED Series IDs</label>
+          <textarea
+            id="economicSeries"
+            rows="6"
+            placeholder="e.g., GDP&#10;UNRATE&#10;CPIAUCSL&#10;FEDFUNDS&#10;DGS10"
+          ></textarea>
+          <p class="help-text">
+            Enter FRED series IDs (one per line). Find series at <a href="https://fred.stlouisfed.org/" target="_blank">fred.stlouisfed.org</a>.<br>
+            Common examples: GDP (GDP Growth), UNRATE (Unemployment), CPIAUCSL (CPI), FEDFUNDS (Fed Funds Rate), DGS10 (10-Year Treasury)
+          </p>
+        </div>
+      </section>
+
+      <!-- Update Frequency Section -->
+      <section class="settings-section">
+        <h2 class="section-title">Update Frequency</h2>
+        <p class="section-description">
+          How often should the extension fetch new data?
+        </p>
+
+        <div class="form-group">
+          <label for="updateFrequency">Update every (minutes)</label>
+          <input
+            type="number"
+            id="updateFrequency"
+            min="1"
+            max="60"
+            value="5"
+          />
+          <p class="help-text">
+            Minimum: 1 minute, Maximum: 60 minutes. Lower values may hit API rate limits.
+          </p>
+        </div>
+      </section>
+
+      <!-- Action Buttons -->
+      <div class="button-group">
+        <button id="saveBtn" class="btn-primary">Save Settings</button>
+        <button id="resetBtn" class="btn-secondary">Reset to Defaults</button>
+      </div>
+
+      <!-- Status Message -->
+      <div id="statusMessage" class="status-toast" style="display: none;"></div>
+    </main>
+  </div>
+
+  <script src="settings.js" type="module"></script>
+</body>
+</html>
