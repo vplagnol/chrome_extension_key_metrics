@@ -39,7 +39,7 @@ export const DEFAULT_SETTINGS = {
   },
   selectedMetrics: {
     polymarketIds: [],
-    stockSymbols: ['AAPL', 'GOOGL', 'MSFT'],
+    stockSymbols: ['AAPL', 'GOOGL', 'MSFT', '^VIX', '^FTSE', '^FCHI'],
     economicSeries: [
       { id: 'GDP', name: 'US GDP Growth' },
       { id: 'UNRATE', name: 'Unemployment Rate' },

@@ -281,10 +281,7 @@ function parseEconomicSeries(value) {
     .split('\n')
     .map(line => line.trim().toUpperCase())
     .filter(line => line.length > 0)
-    .map(seriesId => ({
-      id: seriesId,
-      name: seriesId // Just use the ID as name; API provides full names
-    }));
+    .map(seriesId => seriesId); // Return just the ID string; API will fetch full names
 }
 
 /**

@@ -44,12 +44,24 @@ export function createMetricCard(metric, type) {
       break;
 
     case 'stock':
-      metricName.textContent = metric.symbol;
+      // Display name (or symbol if no name available)
+      metricName.textContent = metric.name || metric.symbol;
 
-      if (metric.name && metric.name !== metric.symbol) {
+      // Build subtitle with symbol and additional context
+      const subtitleParts = [metric.symbol];
+
+      if (metric.industry) {
+        subtitleParts.push(metric.industry);
+      }
+
+      if (metric.country) {
+        subtitleParts.push(metric.country);
+      }
+
+      if (subtitleParts.length > 0 && metric.name && metric.name !== metric.symbol) {
         const subtitle = document.createElement('div');
         subtitle.className = 'metric-subtitle';
-        subtitle.textContent = metric.name;
+        subtitle.textContent = subtitleParts.join(' • ');
         metricInfo.appendChild(metricName);
         metricInfo.appendChild(subtitle);
       } else {
@@ -96,10 +108,37 @@ export function createMetricCard(metric, type) {
     case 'economic':
       metricName.textContent = metric.name;
 
+      // Build subtitle with geography, frequency and date
+      const economicSubtitleParts = [];
+
+      // Add geography/country if available
+      if (metric.geography) {
+        economicSubtitleParts.push(metric.geography);
+      }
+
+      // Expand frequency abbreviations to full words
+      if (metric.frequency) {
+        const frequencyMap = {
+          'D': 'Daily',
+          'W': 'Weekly',
+          'BW': 'Biweekly',
+          'M': 'Monthly',
+          'Q': 'Quarterly',
+          'SA': 'Semiannual',
+          'A': 'Annual'
+        };
+        const expandedFrequency = frequencyMap[metric.frequency] || metric.frequency;
+        economicSubtitleParts.push(expandedFrequency);
+      }
+
       if (metric.date) {
+        economicSubtitleParts.push(metric.date);
+      }
+
+      if (economicSubtitleParts.length > 0) {
         const subtitle = document.createElement('div');
         subtitle.className = 'metric-subtitle';
-        subtitle.textContent = metric.date;
+        subtitle.textContent = economicSubtitleParts.join(' • ');
         metricInfo.appendChild(metricName);
         metricInfo.appendChild(subtitle);
       } else {
@@ -108,7 +147,25 @@ export function createMetricCard(metric, type) {
 
       const value = document.createElement('div');
       value.className = 'metric-value';
-      value.textContent = metric.value.toFixed(2);
+
+      // Format value with units if available
+      if (metric.units) {
+        // Abbreviate common long unit names
+        let abbreviatedUnits = metric.units
+          .replace(/Billions of Dollars/i, 'Bn USD')
+          .replace(/Millions of Dollars/i, 'M USD')
+          .replace(/Thousands of Dollars/i, 'K USD')
+          .replace(/Growth rate previous period/i, '% chg')
+          .replace(/Percent Change from Year Ago/i, '% YoY')
+          .replace(/Percent Change/i, '% chg')
+          .replace(/Index \d+-?\d*=\d+/i, 'Index')
+          .replace(/Percent$/i, '%');
+
+        value.textContent = `${metric.value.toFixed(2)} ${abbreviatedUnits}`;
+      } else {
+        value.textContent = metric.value.toFixed(2);
+      }
+
       metricValues.appendChild(value);
 
       // Make economic indicator cards clickable

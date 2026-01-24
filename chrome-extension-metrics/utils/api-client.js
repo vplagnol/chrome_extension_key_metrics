@@ -161,7 +161,10 @@ const STOCK_NAME_OVERRIDES = {
   'SLV': 'Silver ETF',
   'TLT': '20+ Year Treasury ETF',
   'VTI': 'Total Stock Market ETF',
-  'VOO': 'S&P 500 ETF'
+  'VOO': 'S&P 500 ETF',
+  '^VIX': 'CBOE Volatility Index',
+  '^FTSE': 'FTSE 100 (UK)',
+  '^FCHI': 'CAC 40 (France)'
 };
 
 export async function fetchStockMetrics(settings, previousMetrics = []) {
@@ -199,10 +202,15 @@ export async function fetchStockMetrics(settings, previousMetrics = []) {
 
       // Determine display name with priority: override > profile > symbol
       let displayName = symbol;
+      let industry = null;
+      let country = null;
+
       if (STOCK_NAME_OVERRIDES[symbol]) {
         displayName = STOCK_NAME_OVERRIDES[symbol];
       } else if (profileData?.name) {
         displayName = profileData.name;
+        industry = profileData.finnhubIndustry;
+        country = profileData.country;
       }
 
       console.log(`Stock ${symbol}: name="${displayName}" (profile: ${profileData?.name || 'null'})`);
@@ -210,6 +218,8 @@ export async function fetchStockMetrics(settings, previousMetrics = []) {
       metrics.push({
         symbol: symbol,
         name: displayName,
+        industry: industry,
+        country: country,
         price: currentPrice,
         change: change,
         timestamp: Date.now()
@@ -245,19 +255,24 @@ export async function fetchEconomicMetrics(settings, previousMetrics = []) {
   for (const series of economicSeries) {
     try {
       const seriesId = typeof series === 'string' ? series : series.id;
-      const seriesName = typeof series === 'string' ? series : series.name;
+      const customName = typeof series === 'string' ? null : series.name;
 
-      // Fetch the most recent observation for this series
-      const url = `${API_CONFIG.fred.baseUrl}${API_CONFIG.fred.endpoints.observations}?series_id=${seriesId}&api_key=${apiKey}&file_type=json&limit=2&sort_order=desc`;
-      const data = await fetchWithTimeout(url);
+      // Fetch both series metadata and observations in parallel
+      const seriesUrl = `${API_CONFIG.fred.baseUrl}${API_CONFIG.fred.endpoints.series}?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
+      const observationsUrl = `${API_CONFIG.fred.baseUrl}${API_CONFIG.fred.endpoints.observations}?series_id=${seriesId}&api_key=${apiKey}&file_type=json&limit=2&sort_order=desc`;
 
-      // Validate response
-      if (!data.observations || data.observations.length === 0) {
+      const [seriesData, observationsData] = await Promise.all([
+        fetchWithTimeout(seriesUrl).catch(() => null),
+        fetchWithTimeout(observationsUrl)
+      ]);
+
+      // Validate observations response
+      if (!observationsData.observations || observationsData.observations.length === 0) {
         throw new Error('No observations available');
       }
 
-      const latest = data.observations[0];
-      const previous = data.observations[1];
+      const latest = observationsData.observations[0];
+      const previous = observationsData.observations[1];
       const currentValue = parseFloat(latest.value);
       const previousValue = previous ? parseFloat(previous.value) : null;
 
@@ -265,9 +280,34 @@ export async function fetchEconomicMetrics(settings, previousMetrics = []) {
       const prevMetric = previousMetrics.find(m => m.series === seriesId);
       const change = previousValue ? calculateChange(currentValue, previousValue) : 0;
 
+      // Extract metadata from series info
+      const seriesInfo = seriesData?.seriess?.[0];
+      // Priority: custom name from config > FRED API title > series ID
+      const displayName = customName || seriesInfo?.title || seriesId;
+      const units = seriesInfo?.units;
+      const frequency = seriesInfo?.frequency_short;
+
+      // Extract geography/country from title if present
+      let geography = null;
+      if (seriesInfo?.title) {
+        // Look for patterns like "for [Country]", "in [Country]", ": [Country]"
+        const forMatch = seriesInfo.title.match(/\bfor\s+([A-Z][a-zA-Z\s]+?)(?:\s*$|,|\()/);
+        const inMatch = seriesInfo.title.match(/\bin\s+([A-Z][a-zA-Z\s]+?)(?:\s*$|,|\()/);
+
+        geography = forMatch?.[1]?.trim() || inMatch?.[1]?.trim();
+
+        // Clean up common suffixes
+        if (geography) {
+          geography = geography.replace(/\s+All\s+Items$/i, '').trim();
+        }
+      }
+
       metrics.push({
         series: seriesId,
-        name: seriesName || seriesId,
+        name: displayName,
+        units: units,
+        frequency: frequency,
+        geography: geography,
         value: currentValue,
         change: change,
         date: latest.date,
