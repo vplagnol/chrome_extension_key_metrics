@@ -276,16 +276,29 @@ export async function fetchEconomicMetrics(settings, previousMetrics = []) {
       const currentValue = parseFloat(latest.value);
       const previousValue = previous ? parseFloat(previous.value) : null;
 
-      // Find previous metric for change calculation
-      const prevMetric = previousMetrics.find(m => m.series === seriesId);
-      const change = previousValue ? calculateChange(currentValue, previousValue) : 0;
-
       // Extract metadata from series info
       const seriesInfo = seriesData?.seriess?.[0];
       // Priority: custom name from config > FRED API title > series ID
       const displayName = customName || seriesInfo?.title || seriesId;
       const units = seriesInfo?.units;
       const frequency = seriesInfo?.frequency_short;
+
+      // Debug logging to see actual units string
+      console.log(`Economic ${seriesId}: units="${units}"`);
+
+      // Only calculate change if units don't already represent a change/rate
+      let change = 0;
+      const isAlreadyChangeMetric = units && (
+        /growth rate/i.test(units) ||
+        /percent change/i.test(units) ||
+        /rate of change/i.test(units) ||
+        /annual rate/i.test(units) ||
+        /percentage points/i.test(units)
+      );
+
+      if (!isAlreadyChangeMetric && previousValue) {
+        change = calculateChange(currentValue, previousValue);
+      }
 
       // Extract geography/country from title if present
       let geography = null;

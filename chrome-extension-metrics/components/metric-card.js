@@ -151,10 +151,19 @@ export function createMetricCard(metric, type) {
       // Format value with units if available
       if (metric.units) {
         // Abbreviate common long unit names
+        // Order matters: more specific patterns first, then more general ones
         let abbreviatedUnits = metric.units
           .replace(/Billions of Dollars/i, 'Bn USD')
           .replace(/Millions of Dollars/i, 'M USD')
           .replace(/Thousands of Dollars/i, 'K USD')
+          // Preserve "annual rate" information for GDP and similar metrics
+          // Handle SAAR (Seasonally Adjusted Annual Rate) patterns first
+          .replace(/Percent Change at Seasonally Adjusted Annual Rate/i, '% SAAR')
+          .replace(/Seasonally Adjusted Annual Rate/i, 'SAAR')
+          .replace(/Percent Change at Annual Rate/i, '% ann. rate')
+          .replace(/Percent Change from Preceding Period/i, '% chg')
+          .replace(/Annualized Rate/i, 'ann. rate')
+          .replace(/Annual Rate/i, 'ann. rate')
           .replace(/Growth rate previous period/i, '% chg')
           .replace(/Percent Change from Year Ago/i, '% YoY')
           .replace(/Percent Change/i, '% chg')
@@ -182,7 +191,24 @@ export function createMetricCard(metric, type) {
   if (metric.change !== undefined && metric.change !== null) {
     const change = document.createElement('div');
     change.className = `metric-change ${getChangeClass(metric.change)}`;
-    change.textContent = formatPercentage(metric.change);
+
+    // For economic indicators, add frequency context to clarify change type
+    let changeText = formatPercentage(metric.change);
+    if (type === 'economic' && metric.frequency) {
+      const frequencyLabel = {
+        'Q': ' QoQ',  // Quarter-over-quarter
+        'M': ' MoM',  // Month-over-month
+        'A': ' YoY',  // Year-over-year
+        'W': ' WoW',  // Week-over-week
+        'D': ' DoD'   // Day-over-day
+      }[metric.frequency];
+
+      if (frequencyLabel) {
+        changeText += frequencyLabel;
+      }
+    }
+
+    change.textContent = changeText;
     metricValues.appendChild(change);
   }
 
