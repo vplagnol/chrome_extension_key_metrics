@@ -31,6 +31,12 @@ export function displayAllErrors(errors) {
     displayError(stockError, `Error: ${errors.stocks}`);
   }
 
+  // Display Forex errors
+  const forexError = document.getElementById('forexError');
+  if (forexError && errors.forex) {
+    displayError(forexError, `Error: ${errors.forex}`);
+  }
+
   // Display Economic errors
   const economicError = document.getElementById('economicError');
   if (economicError && errors.economic) {
@@ -45,6 +51,7 @@ export function clearAllErrors() {
   const errorContainers = [
     'polymarketError',
     'stockError',
+    'forexError',
     'economicError'
   ];
 

@@ -26,11 +26,12 @@ async function loadAndDisplayMetrics() {
     const hasData = (
       (metrics.polymarket && metrics.polymarket.length > 0) ||
       (metrics.stocks && metrics.stocks.length > 0) ||
+      (metrics.forex && metrics.forex.length > 0) ||
       (metrics.economic && metrics.economic.length > 0)
     );
 
     // Check if we have any errors
-    const hasErrors = errors.polymarket || errors.stocks || errors.economic;
+    const hasErrors = errors.polymarket || errors.stocks || errors.forex || errors.economic;
 
     // If no data and no errors, show empty state
     if (!hasData && !hasErrors) {
@@ -70,6 +71,12 @@ function displayMetrics(metrics) {
   const stockContainer = document.getElementById('stockMetrics');
   if (stockContainer) {
     renderMetrics(stockContainer, metrics.stocks || [], 'stock');
+  }
+
+  // Render Forex metrics
+  const forexContainer = document.getElementById('forexMetrics');
+  if (forexContainer) {
+    renderMetrics(forexContainer, metrics.forex || [], 'forex');
   }
 
   // Render Economic metrics

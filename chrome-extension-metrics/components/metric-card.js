@@ -70,6 +70,29 @@ export function createMetricCard(metric, type) {
       });
       break;
 
+    case 'forex':
+      metricName.textContent = metric.pair;
+
+      const subtitle = document.createElement('div');
+      subtitle.className = 'metric-subtitle';
+      subtitle.textContent = `1 ${metric.base} = `;
+      metricInfo.appendChild(metricName);
+      metricInfo.appendChild(subtitle);
+
+      const rate = document.createElement('div');
+      rate.className = 'metric-value';
+      rate.textContent = `${metric.rate.toFixed(4)} ${metric.target}`;
+      metricValues.appendChild(rate);
+
+      // Make forex cards clickable to XE.com
+      card.classList.add('clickable');
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => {
+        const url = `https://www.xe.com/currencyconverter/convert/?Amount=1&From=${metric.base}&To=${metric.target}`;
+        chrome.tabs.create({ url });
+      });
+      break;
+
     case 'economic':
       metricName.textContent = metric.name;
 

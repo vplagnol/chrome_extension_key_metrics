@@ -285,3 +285,69 @@ export async function fetchEconomicMetrics(settings, previousMetrics = []) {
 
   return metrics;
 }
+
+// ==================== FOREX API ====================
+
+export async function fetchForexMetrics(settings, previousMetrics = []) {
+  const { forexPairs } = settings.selectedMetrics;
+
+  if (!forexPairs || forexPairs.length === 0) {
+    return [];
+  }
+
+  const metrics = [];
+
+  // Group pairs by base currency to minimize API calls
+  const pairsByBase = {};
+  for (const pair of forexPairs) {
+    const base = pair.base || 'USD';
+    const target = pair.target;
+    if (!pairsByBase[base]) {
+      pairsByBase[base] = [];
+    }
+    pairsByBase[base].push(target);
+  }
+
+  // Fetch data for each base currency
+  for (const [base, targets] of Object.entries(pairsByBase)) {
+    try {
+      const url = `${API_CONFIG.exchangeRate.baseUrl}${API_CONFIG.exchangeRate.endpoints.latest}/${base}`;
+      const data = await fetchWithTimeout(url);
+
+      // Validate response
+      if (!data.rates) {
+        throw new Error('Invalid forex data');
+      }
+
+      // Extract requested target currencies
+      for (const target of targets) {
+        if (data.rates[target]) {
+          const pairId = `${base}/${target}`;
+          const currentRate = data.rates[target];
+          const previous = previousMetrics.find(m => m.pair === pairId);
+          const change = calculateChange(currentRate, previous?.rate);
+
+          metrics.push({
+            pair: pairId,
+            base: base,
+            target: target,
+            rate: currentRate,
+            change: change,
+            timestamp: Date.now()
+          });
+        } else {
+          console.warn(`Exchange rate not available for ${base}/${target}`);
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to fetch forex data for ${base}:`, error);
+      // Continue with other base currencies
+    }
+  }
+
+  if (metrics.length === 0) {
+    throw new Error('No forex data retrieved');
+  }
+
+  return metrics;
+}

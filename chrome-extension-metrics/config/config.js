@@ -21,6 +21,12 @@ export const API_CONFIG = {
       series: '/series',
       observations: '/series/observations'
     }
+  },
+  exchangeRate: {
+    baseUrl: 'https://api.exchangerate-api.com/v4',
+    endpoints: {
+      latest: '/latest'
+    }
   }
 };
 
@@ -38,6 +44,11 @@ export const DEFAULT_SETTINGS = {
       { id: 'GDP', name: 'US GDP Growth' },
       { id: 'UNRATE', name: 'Unemployment Rate' },
       { id: 'CPIAUCSL', name: 'Consumer Price Index' }
+    ],
+    forexPairs: [
+      { base: 'USD', target: 'EUR' },
+      { base: 'USD', target: 'JPY' },
+      { base: 'USD', target: 'GBP' }
     ]
   }
 };

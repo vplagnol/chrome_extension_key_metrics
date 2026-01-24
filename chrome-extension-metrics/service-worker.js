@@ -1,6 +1,6 @@
 import { ALARM_NAME, DEFAULT_SETTINGS } from './config/config.js';
 import { saveMetrics, saveError, clearErrors, initializeStorage, getSettings, getMetrics } from './utils/storage.js';
-import { fetchPolymarketMetrics, fetchStockMetrics, fetchEconomicMetrics } from './utils/api-client.js';
+import { fetchPolymarketMetrics, fetchStockMetrics, fetchEconomicMetrics, fetchForexMetrics } from './utils/api-client.js';
 
 // CRITICAL: Event listeners MUST be at top-level module scope
 // Service workers are non-persistent and terminate after 30 seconds of inactivity
@@ -73,6 +73,7 @@ async function fetchAllMetrics() {
     const results = await Promise.allSettled([
       fetchPolymarketMetrics(settings, previousMetrics.polymarket),
       fetchStockMetrics(settings, previousMetrics.stocks),
+      fetchForexMetrics(settings, previousMetrics.forex),
       fetchEconomicMetrics(settings, previousMetrics.economic)
     ]);
 
@@ -80,6 +81,7 @@ async function fetchAllMetrics() {
     const metrics = {
       polymarket: [],
       stocks: [],
+      forex: [],
       economic: []
     };
 
@@ -99,12 +101,20 @@ async function fetchAllMetrics() {
       await saveError('stocks', results[1].reason);
     }
 
-    // Handle Economic results
+    // Handle Forex results
     if (results[2].status === 'fulfilled') {
-      metrics.economic = results[2].value;
+      metrics.forex = results[2].value;
     } else {
-      console.error('Economic fetch failed:', results[2].reason);
-      await saveError('economic', results[2].reason);
+      console.error('Forex fetch failed:', results[2].reason);
+      await saveError('forex', results[2].reason);
+    }
+
+    // Handle Economic results
+    if (results[3].status === 'fulfilled') {
+      metrics.economic = results[3].value;
+    } else {
+      console.error('Economic fetch failed:', results[3].reason);
+      await saveError('economic', results[3].reason);
     }
 
     // Save metrics to storage

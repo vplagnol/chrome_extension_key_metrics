@@ -18,6 +18,7 @@ export async function getMetrics() {
     metrics: result[STORAGE_KEYS.METRICS] || {
       polymarket: [],
       stocks: [],
+      forex: [],
       economic: []
     },
     lastUpdate: result[STORAGE_KEYS.LAST_UPDATE] || null
@@ -34,13 +35,13 @@ export async function saveError(errorType, error) {
 // Get errors from storage
 export async function getErrors() {
   const { errors } = await chrome.storage.local.get(STORAGE_KEYS.ERRORS);
-  return errors || { polymarket: null, stocks: null, economic: null };
+  return errors || { polymarket: null, stocks: null, forex: null, economic: null };
 }
 
 // Clear all errors
 export async function clearErrors() {
   await chrome.storage.local.set({
-    [STORAGE_KEYS.ERRORS]: { polymarket: null, stocks: null, economic: null }
+    [STORAGE_KEYS.ERRORS]: { polymarket: null, stocks: null, forex: null, economic: null }
   });
 }
 

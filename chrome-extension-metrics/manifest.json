@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Market Metrics Tracker",
   "version": "1.0.0",
-  "description": "Track Polymarket predictions, stock prices, and economic indicators",
+  "description": "Track Polymarket predictions, stock prices, forex rates, and economic indicators",
   "permissions": [
     "alarms",
     "storage"
@@ -11,7 +11,8 @@
     "https://gamma-api.polymarket.com/*",
     "https://clob.polymarket.com/*",
     "https://finnhub.io/*",
-    "https://api.stlouisfed.org/*"
+    "https://api.stlouisfed.org/*",
+    "https://api.exchangerate-api.com/*"
   ],
   "background": {
     "service_worker": "service-worker.js",

@@ -27,6 +27,11 @@ async function loadSettings() {
     const stockSymbols = settings.selectedMetrics.stockSymbols || [];
     document.getElementById('stockSymbols').value = stockSymbols.join(', ');
 
+    // Populate forex pairs
+    const forexPairs = settings.selectedMetrics.forexPairs || [];
+    const forexPairsText = forexPairs.map(pair => `${pair.base}/${pair.target}`).join('\n');
+    document.getElementById('forexPairs').value = forexPairsText;
+
     // Populate economic indicators
     const economicSeries = settings.selectedMetrics.economicSeries || [];
     const economicSeriesIds = economicSeries.map(series =>
@@ -83,6 +88,7 @@ async function saveSettingsHandler() {
       selectedMetrics: {
         polymarketIds: parsePolymarketIds(document.getElementById('polymarketIds').value),
         stockSymbols: parseStockSymbols(document.getElementById('stockSymbols').value),
+        forexPairs: parseForexPairs(document.getElementById('forexPairs').value),
         economicSeries: parseEconomicSeries(document.getElementById('economicSeries').value)
       },
       updateFrequency: parseInt(document.getElementById('updateFrequency').value, 10)
@@ -242,6 +248,29 @@ function parseStockSymbols(value) {
     .split(',')
     .map(symbol => symbol.trim().toUpperCase())
     .filter(symbol => symbol.length > 0);
+}
+
+/**
+ * Parse forex pairs from multi-line input
+ * Format: BASE/TARGET (e.g., USD/EUR)
+ */
+function parseForexPairs(value) {
+  return value
+    .split('\n')
+    .map(line => line.trim().toUpperCase())
+    .filter(line => line.length > 0)
+    .map(line => {
+      // Parse format like "USD/EUR" or "USD EUR"
+      const parts = line.split(/[\/\s]+/);
+      if (parts.length >= 2) {
+        return {
+          base: parts[0],
+          target: parts[1]
+        };
+      }
+      return null;
+    })
+    .filter(pair => pair !== null);
 }
 
 /**
