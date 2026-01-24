@@ -1,9 +1,35 @@
 import { ALARM_NAME, DEFAULT_SETTINGS } from './config/config.js';
-import { saveMetrics, saveError, clearErrors, initializeStorage, getSettings, getMetrics } from './utils/storage.js';
+import { saveMetrics, saveError, clearErrors, initializeStorage, getSettings, getMetrics, saveSettings } from './utils/storage.js';
 import { fetchPolymarketMetrics, fetchStockMetrics, fetchEconomicMetrics, fetchForexMetrics } from './utils/api-client.js';
 
 // CRITICAL: Event listeners MUST be at top-level module scope
 // Service workers are non-persistent and terminate after 30 seconds of inactivity
+
+// Migrate settings - replace old GDP series with new one
+async function migrateSettings() {
+  const settings = await getSettings();
+
+  if (settings.selectedMetrics?.economicSeries) {
+    let modified = false;
+    const series = settings.selectedMetrics.economicSeries;
+
+    // Replace 'GDP' with 'A191RL1A225NBEA' (Real GDP YoY growth)
+    for (let i = 0; i < series.length; i++) {
+      const item = series[i];
+      const id = typeof item === 'string' ? item : item.id;
+
+      if (id === 'GDP') {
+        series[i] = 'A191RL1A225NBEA';
+        modified = true;
+        console.log('Migrated GDP series to A191RL1A225NBEA');
+      }
+    }
+
+    if (modified) {
+      await saveSettings(settings);
+    }
+  }
+}
 
 // Handle extension installation
 chrome.runtime.onInstalled.addListener(async (details) => {
@@ -11,6 +37,9 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
   // Initialize storage with default settings
   await initializeStorage();
+
+  // Run migrations
+  await migrateSettings();
 
   // Create alarm for periodic fetching
   await chrome.alarms.create(ALARM_NAME, {

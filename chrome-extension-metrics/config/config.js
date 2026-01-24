@@ -41,9 +41,10 @@ export const DEFAULT_SETTINGS = {
     polymarketIds: [],
     stockSymbols: ['AAPL', 'GOOGL', 'MSFT', '^VIX', '^FTSE', '^FCHI'],
     economicSeries: [
-      { id: 'GDP', name: 'US GDP Growth' },
-      { id: 'UNRATE', name: 'Unemployment Rate' },
-      { id: 'CPIAUCSL', name: 'Consumer Price Index' }
+      'A191RL1A225NBEA',  // Real GDP, Percent Change from Year Ago
+      'UNRATE',           // Unemployment Rate
+      'CPIAUCSL',         // Consumer Price Index
+      'CPALTT01FRM657N'   // CPI for France
     ],
     forexPairs: [
       { base: 'USD', target: 'EUR' },

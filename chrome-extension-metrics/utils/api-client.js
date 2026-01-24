@@ -283,9 +283,6 @@ export async function fetchEconomicMetrics(settings, previousMetrics = []) {
       const units = seriesInfo?.units;
       const frequency = seriesInfo?.frequency_short;
 
-      // Debug logging to see actual units string
-      console.log(`Economic ${seriesId}: units="${units}"`);
-
       // Only calculate change if units don't already represent a change/rate
       let change = 0;
       const isAlreadyChangeMetric = units && (
