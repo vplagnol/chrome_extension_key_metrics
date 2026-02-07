@@ -29,6 +29,15 @@ export function createMetricCard(metric, type) {
     case 'polymarket':
       metricName.textContent = metric.title;
 
+      // Show the leading option for multi-choice markets
+      if (metric.topOutcome) {
+        const polySubtitle = document.createElement('div');
+        polySubtitle.className = 'metric-subtitle';
+        polySubtitle.textContent = metric.topOutcome;
+        metricInfo.appendChild(metricName);
+        metricInfo.appendChild(polySubtitle);
+      }
+
       const probability = document.createElement('div');
       probability.className = 'metric-value';
       probability.textContent = formatProbability(metric.probability);

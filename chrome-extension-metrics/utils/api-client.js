@@ -34,6 +34,56 @@ function calculateChange(current, previous) {
 
 // ==================== POLYMARKET API ====================
 
+/**
+ * Find the market with the highest probability from an event's markets array.
+ * For binary markets (1 market), returns that market's first outcome price.
+ * For multi-choice markets (many markets), finds the leading option.
+ * Returns { market, probability, topOutcome, isMultiChoice }
+ */
+function findTopMarket(markets) {
+  const isMultiChoice = markets.length > 1;
+  let bestMarket = markets[0];
+  let bestProbability = 0;
+  let topOutcome = null;
+
+  for (const market of markets) {
+    let prob = 0;
+
+    if (market.outcomePrices) {
+      try {
+        const prices = JSON.parse(market.outcomePrices);
+        if (Array.isArray(prices) && prices.length > 0) {
+          prob = parseFloat(prices[0]) || 0;
+        }
+      } catch (e) {
+        // ignore parse errors
+      }
+    } else if (market.outcomes && Array.isArray(market.outcomes) && market.outcomes.length > 0) {
+      prob = parseFloat(market.outcomes[0].price) || 0;
+    } else if (market.outcomeTokens && Array.isArray(market.outcomeTokens) && market.outcomeTokens.length > 0) {
+      prob = parseFloat(market.outcomeTokens[0].price) || 0;
+    }
+
+    if (prob > bestProbability) {
+      bestProbability = prob;
+      bestMarket = market;
+      topOutcome = market.groupItemTitle || market.question || null;
+    }
+  }
+
+  // For binary markets, don't set topOutcome (the title is sufficient)
+  if (!isMultiChoice) {
+    topOutcome = null;
+  }
+
+  return {
+    market: bestMarket,
+    probability: bestProbability || 0.5,
+    topOutcome,
+    isMultiChoice
+  };
+}
+
 export async function fetchPolymarketMetrics(settings, previousMetrics = []) {
   const { polymarketIds } = settings.selectedMetrics;
 
@@ -64,36 +114,18 @@ export async function fetchPolymarketMetrics(settings, previousMetrics = []) {
 
       // Extract market data from the event
       if (eventData && eventData.markets && eventData.markets.length > 0) {
-        const market = eventData.markets[0];
+        const { market, probability, topOutcome } = findTopMarket(eventData.markets);
         const marketId = market.conditionId || market.id || slug;
         const previous = previousMetrics.find(m => m.id === marketId);
 
-        // Get probability from market data
-        let probability = 0.5;
-
-        // Parse outcomePrices - it's a JSON string array like "[\"0.235\", \"0.765\"]"
-        if (market.outcomePrices) {
-          try {
-            const prices = JSON.parse(market.outcomePrices);
-            if (Array.isArray(prices) && prices.length > 0) {
-              probability = parseFloat(prices[0]) || 0.5;
-            }
-          } catch (e) {
-            console.warn(`Failed to parse outcomePrices for ${slug}:`, e);
-          }
-        } else if (market.outcomes && Array.isArray(market.outcomes) && market.outcomes.length > 0) {
-          probability = parseFloat(market.outcomes[0].price) || 0.5;
-        } else if (market.outcomeTokens && Array.isArray(market.outcomeTokens) && market.outcomeTokens.length > 0) {
-          probability = parseFloat(market.outcomeTokens[0].price) || 0.5;
-        }
-
-        console.log(`${slug}: ${(probability * 100).toFixed(1)}%`);
+        console.log(`${slug}: ${(probability * 100).toFixed(1)}%${topOutcome ? ` (${topOutcome})` : ''}`);
 
         metrics.push({
           id: marketId,
-          title: market.question || eventData.title || 'Unknown Market',
+          title: eventData.title || market.question || 'Unknown Market',
           slug: slug,
           probability: probability,
+          topOutcome: topOutcome,
           change: calculateChange(probability, previous?.probability),
           timestamp: Date.now()
         });
@@ -124,16 +156,16 @@ async function fetchTopPolymarketMarkets(previousMetrics = []) {
 
     for (const event of events.slice(0, 5)) {
       if (event.markets && event.markets.length > 0) {
-        const market = event.markets[0];
+        const { market, probability, topOutcome } = findTopMarket(event.markets);
         const marketId = market.conditionId || market.id;
         const previous = previousMetrics.find(m => m.id === marketId);
-        const probability = market.outcomeTokens?.[0]?.price || 0.5;
 
         metrics.push({
           id: marketId,
-          title: market.question || event.title,
+          title: event.title || market.question,
           slug: event.slug,
           probability: probability,
+          topOutcome: topOutcome,
           change: calculateChange(probability, previous?.probability),
           timestamp: Date.now()
         });
