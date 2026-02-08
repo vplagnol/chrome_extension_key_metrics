@@ -23,7 +23,7 @@ export const API_CONFIG = {
     }
   },
   exchangeRate: {
-    baseUrl: 'https://api.exchangerate-api.com/v4',
+    baseUrl: 'https://api.frankfurter.app',
     endpoints: {
       latest: '/latest'
     }

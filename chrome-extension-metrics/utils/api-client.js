@@ -393,7 +393,8 @@ export async function fetchForexMetrics(settings, previousMetrics = []) {
   // Fetch data for each base currency
   for (const [base, targets] of Object.entries(pairsByBase)) {
     try {
-      const url = `${API_CONFIG.exchangeRate.baseUrl}${API_CONFIG.exchangeRate.endpoints.latest}/${base}`;
+      const targetList = targets.join(',');
+      const url = `${API_CONFIG.exchangeRate.baseUrl}${API_CONFIG.exchangeRate.endpoints.latest}?from=${base}&to=${targetList}`;
       const data = await fetchWithTimeout(url);
 
       // Validate response
