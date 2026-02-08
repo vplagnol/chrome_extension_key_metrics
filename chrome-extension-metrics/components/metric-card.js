@@ -102,7 +102,9 @@ export function createMetricCard(metric, type) {
 
       const rate = document.createElement('div');
       rate.className = 'metric-value';
-      rate.textContent = `${metric.rate.toFixed(4)} ${metric.target}`;
+      // Use enough decimal places to show at least 4 significant digits
+      const decimals = metric.rate >= 100 ? 2 : metric.rate >= 10 ? 3 : metric.rate >= 1 ? 4 : 6;
+      rate.textContent = `${metric.rate.toFixed(decimals)} ${metric.target}`;
       metricValues.appendChild(rate);
 
       // Make forex cards clickable to XE.com
